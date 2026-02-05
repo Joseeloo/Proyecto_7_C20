@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Proyecto 7 - eCommerce API
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+
+  /api/auth/register:
+    post:
+      summary: Register user
+      responses:
+        "201":
+          description: Created
+
+  /api/auth/login:
+    post:
+      summary: Login user
+      responses:
+        "200":
+          description: OK
+
+  /api/auth/me:
+    get:
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+
+  /api/products:
+    get:
+      summary: List products
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Create product
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Created
+
+  /api/cart:
+    get:
+      summary: Get my cart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+    put:
+      summary: Replace my cart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+
+  /api/payments/checkout-session:
+    post:
+      summary: Create Stripe checkout session
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
