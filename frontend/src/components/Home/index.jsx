@@ -21,8 +21,8 @@ const Home = () => {
 
         <div className="hidden lg:block">
           <img
-            src="https://images.unsplash.com/photo-1518770660439-4636190af475"
-            alt="Tecnología"
+            src="https://cdn-images-1.medium.com/v2/resize:fit:600/1*2DZh55QRYVRlQfQ9El72Xg.jpeg"
+            alt="E-commerce"
             className="rounded-lg shadow-lg"
           />
         </div>
