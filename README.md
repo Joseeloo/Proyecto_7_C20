@@ -384,6 +384,10 @@ En esta sección se presentan los resultados del flujo completo de comercio elec
 La aplicación integra Stripe Checkout en modo de pruebas, permitiendo simular pagos reales de forma segura. Al completar el pago, el usuario es redirigido nuevamente a la aplicación y el sistema registra correctamente la transacción, confirmando la integración exitosa de la pasarela de pagos.
 <img width="1891" height="867" alt="image" src="https://github.com/user-attachments/assets/2faef465-fc54-4e2f-932b-b7806e0522de" />
 
+### Perfil
+En el perfil se peuden realizar cambios de informacion y tambien cambio de contraseña, utilizando la contraseña actual y la nueva.
+<img width="1879" height="859" alt="image" src="https://github.com/user-attachments/assets/4e73aa58-1176-4584-bcde-9aea96cc41ff" />
+
 
 # Despliegue
 En esta sección se presentan los resultados asociados al despliegue de la aplicación Fullstack DailyMarket. El objetivo de este despliegue es demostrar que tanto el backend como el frontend funcionan correctamente en entornos productivos reales, utilizando servicios cloud, y que la aplicación puede ser accedida públicamente mediante URLs disponibles. Asimismo, se valida la correcta conexión con la base de datos MongoDB Atlas y la documentación de la API a través de Swagger.
