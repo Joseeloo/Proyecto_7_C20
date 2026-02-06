@@ -2,6 +2,7 @@ import { useReducer, useEffect } from "react";
 import AuthContext from "./AuthContext";
 import AuthReducer from "./AuthReducer";
 import api from "../../config/axios";
+import { updateProfile as updateProfileService } from "../../services/auth.service";
 
 const token = localStorage.getItem("token");
 
@@ -36,6 +37,11 @@ const AuthState = ({ children }) => {
     }
   };
 
+  const updateProfile = async (data) => {
+    const user = await updateProfileService(data);
+    dispatch({ type: "UPDATE_PROFILE", payload: user });
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     dispatch({ type: "LOGOUT" });
@@ -55,6 +61,7 @@ const AuthState = ({ children }) => {
         register,
         loadUser,
         logout,
+        updateProfile,
       }}
     >
       {children}

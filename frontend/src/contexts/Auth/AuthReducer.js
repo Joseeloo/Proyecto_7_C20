@@ -22,6 +22,12 @@ const AuthReducer = (state, action) => {
         isAuthenticated: false,
       };
 
+    case "UPDATE_PROFILE":
+      return {
+        ...state,
+        user: action.payload,
+      };
+
     default:
       return state;
   }

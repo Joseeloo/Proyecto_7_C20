@@ -59,26 +59,86 @@ exports.me = asyncHandler(async (req, res) => {
 });
 
 exports.updateMe = asyncHandler(async (req, res) => {
-    const { username, email, password, country, address, zipcode } = req.body;
+  const { username, email, country, address, zipcode, currentPassword, newPassword } = req.body;
 
-    const update = {};
-    if (username) update.username = username;
-    if (email) {
-        if (!isValidEmail(email)) return fail(res, { status: 400, message: "Email inválido" });
-        update.email = email;
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return fail(res, { status: 404, message: "Usuario no encontrado" });
+  }
+
+  const update = {};
+
+  if (username && username !== user.username) {
+    update.username = username;
+  }
+
+  if (email && email !== user.email) {
+    if (!isValidEmail(email)) {
+      return fail(res, { status: 400, message: "Email inválido" });
     }
-    if (country !== undefined) update.country = country;
-    if (address !== undefined) update.address = address;
-    if (zipcode !== undefined) update.zipcode = zipcode;
+    update.email = email;
+  }
 
-    if (password) {
-        const salt = await bcryptjs.genSalt(10);
-        update.password = await bcryptjs.hash(password, salt);
+  if (country !== undefined && country !== user.country) {
+    update.country = country;
+  }
+
+  if (address !== undefined && address !== user.address) {
+    update.address = address;
+  }
+
+  if (zipcode !== undefined && zipcode !== user.zipcode) {
+    update.zipcode = zipcode;
+  }
+
+  if (newPassword) {
+    if (!currentPassword) {
+      return fail(res, {
+        status: 400,
+        message: "Debes ingresar tu contraseña actual",
+      });
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, update, { new: true, runValidators: true }).select(
-        "-password"
+    const isMatch = await bcryptjs.compare(
+      currentPassword,
+      user.password
     );
 
-    return ok(res, { message: "Perfil actualizado", data: { user } });
+    if (!isMatch) {
+      return fail(res, {
+        status: 400,
+        message: "La contraseña actual es incorrecta",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return fail(res, {
+        status: 400,
+        message: "La nueva contraseña debe tener al menos 8 caracteres",
+      });
+    }
+
+    const salt = await bcryptjs.genSalt(10);
+    update.password = await bcryptjs.hash(newPassword, salt);
+  }
+
+  if (Object.keys(update).length === 0) {
+    return ok(res, {
+      message: "No se realizaron cambios",
+      data: { user: await User.findById(user._id).select("-password") },
+    });
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    update,
+    { new: true, runValidators: true }
+  ).select("-password");
+
+  return ok(res, {
+    message: newPassword
+      ? "Perfil y contraseña actualizados correctamente"
+      : "Perfil actualizado correctamente",
+    data: { user: updatedUser },
+  });
 });
