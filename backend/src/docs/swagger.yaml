@@ -2,11 +2,25 @@ openapi: 3.0.0
 info:
   title: Proyecto 7 - eCommerce API
   version: 1.0.0
+  description: API REST para eCommerce (auth JWT, productos, carrito y checkout Stripe)
+
 servers:
+  - url: https://proyecto-7-c20-backend.onrender.com
+    description: Producción (Render)
   - url: http://localhost:5000
+    description: Desarrollo local
+
+tags:
+  - name: Health
+  - name: Auth
+  - name: Products
+  - name: Cart
+  - name: Payments
+
 paths:
   /api/health:
     get:
+      tags: [Health]
       summary: Health check
       responses:
         "200":
@@ -14,65 +28,217 @@ paths:
 
   /api/auth/register:
     post:
-      summary: Register user
+      tags: [Auth]
+      summary: Registrar usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+            example:
+              name: "Vale"
+              email: "vale@test.com"
+              password: "12345678"
       responses:
         "201":
-          description: Created
+          description: Usuario creado
+        "400":
+          description: Error de validación
 
   /api/auth/login:
     post:
-      summary: Login user
+      tags: [Auth]
+      summary: Login usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+            example:
+              email: "vale@test.com"
+              password: "12345678"
       responses:
         "200":
-          description: OK
+          description: OK (retorna token)
+        "401":
+          description: Credenciales inválidas
 
   /api/auth/me:
     get:
-      summary: Get current user
+      tags: [Auth]
+      summary: Obtener usuario actual
       security:
         - bearerAuth: []
       responses:
         "200":
           description: OK
+        "401":
+          description: No autorizado
 
   /api/products:
     get:
-      summary: List products
+      tags: [Products]
+      summary: Listar productos
       responses:
         "200":
           description: OK
     post:
-      summary: Create product
+      tags: [Products]
+      summary: Crear producto (requiere auth)
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+            example:
+              name: "Polera Oversize Gris"
+              price: 14990
+              img: "https://images.unsplash.com/photo-1520975958225-2a8a9f5d0a46"
+              slug: "polera-oversize-gris"
+              description: "Polera oversize premium"
+              category: "ropa"
+              stock: 20
+              currency: "clp"
       responses:
         "201":
-          description: Created
+          description: Creado
+        "401":
+          description: No autorizado
+
+  /api/products/{id}:
+    get:
+      tags: [Products]
+      summary: Obtener producto por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: ID inválido
+        "404":
+          description: No encontrado
+    put:
+      tags: [Products]
+      summary: Actualizar producto por ID (requiere auth)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductBody"
+            example:
+              price: 15990
+              stock: 15
+      responses:
+        "200":
+          description: Actualizado
+        "401":
+          description: No autorizado
+        "404":
+          description: No encontrado
+    delete:
+      tags: [Products]
+      summary: Eliminar producto por ID (requiere auth)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Eliminado
+        "401":
+          description: No autorizado
+        "404":
+          description: No encontrado
+
+  /api/products/slug/{slug}:
+    get:
+      tags: [Products]
+      summary: Obtener producto por slug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: No encontrado
 
   /api/cart:
     get:
-      summary: Get my cart
+      tags: [Cart]
+      summary: Obtener mi carrito
       security:
         - bearerAuth: []
       responses:
         "200":
           description: OK
+        "401":
+          description: No autorizado
     put:
-      summary: Replace my cart
+      tags: [Cart]
+      summary: Reemplazar mi carrito (set items)
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplaceCartBody"
+            example:
+              items:
+                - productId: "65f0c7b0b9f..."
+                  quantity: 2
       responses:
         "200":
           description: OK
+        "400":
+          description: Body inválido
+        "401":
+          description: No autorizado
 
   /api/payments/checkout-session:
     post:
-      summary: Create Stripe checkout session
+      tags: [Payments]
+      summary: Crear sesión de Checkout (Stripe)
       security:
         - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutBody"
+            example:
+              successUrl: "https://TU_FRONT.netlify.app/pago-exitoso"
+              cancelUrl: "https://TU_FRONT.netlify.app/pago-cancelado"
       responses:
         "200":
-          description: OK
+          description: OK (retorna url de stripe)
+        "401":
+          description: No autorizado
 
 components:
   securitySchemes:
@@ -80,3 +246,63 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  schemas:
+    RegisterBody:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    CreateProductBody:
+      type: object
+      required: [name, price, img, slug]
+      properties:
+        name: { type: string }
+        price: { type: number, example: 14990 }
+        description: { type: string }
+        img: { type: string }
+        slug: { type: string }
+        stock: { type: number, example: 20 }
+        category: { type: string, example: "ropa" }
+        currency: { type: string, example: "clp" }
+
+    UpdateProductBody:
+      type: object
+      properties:
+        name: { type: string }
+        price: { type: number }
+        description: { type: string }
+        img: { type: string }
+        slug: { type: string }
+        stock: { type: number }
+        category: { type: string }
+        currency: { type: string }
+
+    ReplaceCartBody:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId: { type: string }
+              quantity: { type: integer, minimum: 1 }
+
+    CheckoutBody:
+      type: object
+      properties:
+        successUrl: { type: string }
+        cancelUrl: { type: string }
